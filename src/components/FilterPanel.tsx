@@ -23,6 +23,12 @@ export default function FilterPanel() {
   const [isMapOpen, setIsMapOpen] = useState(true);
   const [isDatesOpen, setIsDatesOpen] = useState(true);
   const [isLayersOpen, setIsLayersOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [hoveredMatchId, setHoveredMatchId] = useState<string | null>(null);
+
+  const displayedMatches = filteredMatches.filter(match =>
+    match.match_id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const getMapMatchCount = (mapId: string) => {
     return matchIndex.filter(m => m.map_id === mapId).length;
@@ -151,50 +157,90 @@ export default function FilterPanel() {
       <div className="h-[320px] border-t border-[#2a2a4a] p-4 flex flex-col overflow-hidden bg-[#131326] shrink-0">
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#8888aa] mb-2 flex justify-between items-center">
           <span>Matches</span>
-          <span className="text-xs font-bold bg-[#2a2a4a] px-2 py-0.5 rounded-full text-[#e0e0ff]">{filteredMatches.length}</span>
+          <span className="text-xs font-bold bg-[#2a2a4a] px-2 py-0.5 rounded-full text-[#e0e0ff]">{displayedMatches.length}</span>
         </h2>
-        <div className="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
-          {filteredMatches.map(match => (
+
+        {/* Search input */}
+        <div className="relative mb-2">
+          <input
+            type="text"
+            placeholder="Search Match ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#1a1a2e] text-xs p-2 pl-8 pr-7 rounded border border-[#2a2a4a] outline-none text-[#e0e0ff] placeholder-[#8888aa] hover:border-[#3a3a5a] focus:border-[#00D4FF] transition-all"
+          />
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8888aa] text-xs">🔍</span>
+          {searchQuery && (
             <button
-              key={match.match_id}
-              onClick={() => setMatch(match.match_id)}
-              className={`w-full text-left p-2.5 rounded text-xs border transition-colors ${
-                selectedMatchId === match.match_id 
-                  ? 'bg-[#2a2a4a] border-[#00D4FF]' 
-                  : 'bg-[#1a1a2e] border-[#2a2a4a] hover:border-[#3a3a5a] hover:bg-[#20203a]'
-              }`}
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8888aa] hover:text-[#e0e0ff] text-xs"
             >
-              <div className="font-mono truncate mb-1 text-[#e0e0ff]">{match.match_id.substring(0, 8)}...</div>
-              <div className="text-[#8888aa] flex justify-between items-center mt-1">
-                <span className="flex items-center gap-2">
-                  <span className="flex items-center">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00D4FF] mr-1"></span>
-                    {match.human_count}H
-                  </span>
-                  <span className="flex items-center">
-                    <span className="inline-block w-1.5 h-1.5 rounded-sm bg-[#FF6B35] mr-1"></span>
-                    {match.bot_count}B
-                  </span>
-                </span>
-                
-                <span className="flex items-center gap-2">
-                  {match.event_summary?.kill !== undefined && match.event_summary.kill > 0 && (
-                    <span className="flex items-center text-[#FF0044] font-semibold" title="Kills">
-                      <span className="mr-0.5 text-[10px]">◆</span>{match.event_summary.kill}
-                    </span>
-                  )}
-                  {match.event_summary?.loot !== undefined && match.event_summary.loot > 0 && (
-                    <span className="flex items-center text-[#FFD700] font-semibold" title="Loot Boxes">
-                      <span className="mr-0.5 text-[10px]">●</span>{match.event_summary.loot}
-                    </span>
-                  )}
-                  <span className="text-[10px]">{Math.floor(match.duration_s / 60)}m</span>
-                </span>
-              </div>
+              ✕
             </button>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
+          {displayedMatches.map(match => (
+            <div 
+              key={match.match_id} 
+              className="relative group"
+              onMouseEnter={() => setHoveredMatchId(match.match_id)}
+              onMouseLeave={() => setHoveredMatchId(null)}
+            >
+              <button
+                onClick={() => setMatch(match.match_id)}
+                className={`w-full text-left p-2.5 rounded text-xs border transition-colors ${
+                  selectedMatchId === match.match_id 
+                    ? 'bg-[#2a2a4a] border-[#00D4FF]' 
+                    : 'bg-[#1a1a2e] border-[#2a2a4a] hover:border-[#3a3a5a] hover:bg-[#20203a]'
+                }`}
+              >
+                <div className={`font-mono truncate mb-1 text-[#e0e0ff] transition-opacity duration-150 ${
+                  hoveredMatchId === match.match_id ? 'opacity-0' : 'opacity-100'
+                }`}>
+                  {match.match_id.substring(0, 8)}...
+                </div>
+                <div className="text-[#8888aa] flex justify-between items-center mt-1">
+                  <span className="flex items-center gap-2">
+                    <span className="flex items-center">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00D4FF] mr-1"></span>
+                      {match.human_count}H
+                    </span>
+                    <span className="flex items-center">
+                      <span className="inline-block w-1.5 h-1.5 rounded-sm bg-[#FF6B35] mr-1"></span>
+                      {match.bot_count}B
+                    </span>
+                  </span>
+                  
+                  <span className="flex items-center gap-2">
+                    {match.event_summary?.kill !== undefined && match.event_summary.kill > 0 && (
+                      <span className="flex items-center text-[#FF0044] font-semibold" title="Kills">
+                        <span className="mr-0.5 text-[10px]">◆</span>{match.event_summary.kill}
+                      </span>
+                    )}
+                    {match.event_summary?.loot !== undefined && match.event_summary.loot > 0 && (
+                      <span className="flex items-center text-[#FFD700] font-semibold" title="Loot Boxes">
+                        <span className="mr-0.5 text-[10px]">●</span>{match.event_summary.loot}
+                      </span>
+                    )}
+                    <span className="text-[10px]">{Math.floor(match.duration_s / 60)}m</span>
+                  </span>
+                </div>
+              </button>
+
+              {/* Tooltip overlaying the first line dynamically */}
+              {hoveredMatchId === match.match_id && (
+                <div className="absolute top-2 left-2 right-2 pointer-events-none z-10">
+                  <div className="bg-[#161630] text-[#00D4FF] text-[10px] font-mono p-1 rounded border border-[#00D4FF] shadow-2xl break-all leading-tight">
+                    {match.match_id}
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
-          {filteredMatches.length === 0 && (
-            <div className="text-sm text-[#8888aa] text-center mt-8 italic">No matches found for current filters</div>
+          {displayedMatches.length === 0 && (
+            <div className="text-sm text-[#8888aa] text-center mt-8 italic">No matches found</div>
           )}
         </div>
       </div>
