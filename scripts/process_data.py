@@ -116,7 +116,8 @@ def main():
                             "user_id": user_id_str,
                             "is_bot": is_bot(user_id_str),
                             "positions": [],
-                            "events": []
+                            "events": [],
+                            "raw_events": []
                         }
                         
                     player = match_data['players'][user_id_str]
@@ -134,6 +135,8 @@ def main():
                         elapsed_s = max(0, int(elapsed_s))
                         
                         event_type_raw = str(row['event'])
+                        player.setdefault('raw_events', []).append(event_type_raw)
+                        
                         x = float(row.get('x', 0))
                         z = float(row.get('z', 0))
                         px, py = get_pixel_coords(x, z, map_id)
@@ -160,7 +163,13 @@ def main():
                             ev_type = 'loot'
                             
                         if ev_type:
-                            player['events'].append({"type": ev_type, "px": px, "py": py, "t": elapsed_s})
+                            player['events'].append({
+                                "type": ev_type, 
+                                "px": px, 
+                                "py": py, 
+                                "t": elapsed_s,
+                                "raw": event_type_raw
+                            })
                             # update summary
                             match_data['event_summary'][ev_type] = match_data['event_summary'].get(ev_type, 0) + 1
 
@@ -168,9 +177,42 @@ def main():
     print("Formatting and saving output...")
     index = []
     for match_id, data in matches.items():
+        actual_bot_count = sum(1 for p in data['players'].values() if p['is_bot'])
+        actual_human_count = sum(1 for p in data['players'].values() if not p['is_bot'])
+        
+        bot_kills_inferred = 0
+        bot_deaths_inferred = 0
+        inferred_bots = []
+        for player in list(data['players'].values()):
+            if not player['is_bot']:
+                for event in player['events']:
+                    if event.get('type') == 'kill' and event.get('raw') == 'BotKill':
+                        bot_kills_inferred += 1
+                        phantom_bot = {
+                            "user_id": f"inferred_bot_{bot_kills_inferred}",
+                            "is_bot": True,
+                            "positions": [],
+                            "events": [
+                                {
+                                    "type": "death",
+                                    "px": event["px"],
+                                    "py": event["py"],
+                                    "t": event["t"],
+                                    "raw": "BotKilled"
+                                }
+                            ]
+                        }
+                        inferred_bots.append(phantom_bot)
+                    elif event.get('type') == 'death' and event.get('raw') == 'BotKilled':
+                        bot_deaths_inferred += 1
+                        
+        if actual_bot_count == 0:
+            for bot in inferred_bots:
+                data['players'][bot['user_id']] = bot
+                
         players_list = list(data['players'].values())
-        human_count = sum(1 for p in players_list if not p['is_bot'])
-        bot_count = sum(1 for p in players_list if p['is_bot'])
+        human_count = actual_human_count
+        bot_count = max(actual_bot_count, bot_kills_inferred)
         duration_s = max(0, int(data['max_ts'] - data['min_ts']))
         
         # Save match JSON
@@ -181,6 +223,8 @@ def main():
             "duration_s": duration_s,
             "human_count": human_count,
             "bot_count": bot_count,
+            "bot_kills_inferred": bot_kills_inferred,
+            "bot_deaths_inferred": bot_deaths_inferred,
             "players": players_list
         }
         with open(os.path.join(matches_dir, f"{match_id}.json"), 'w') as f:
@@ -194,6 +238,8 @@ def main():
             "duration_s": duration_s,
             "human_count": human_count,
             "bot_count": bot_count,
+            "bot_kills_inferred": bot_kills_inferred,
+            "bot_deaths_inferred": bot_deaths_inferred,
             "event_summary": data['event_summary']
         })
         
