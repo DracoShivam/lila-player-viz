@@ -47,24 +47,23 @@ This application is **static-first and runs entirely on the client side**.
 ## 📂 Project Structure
 
 ```
-d:\LILA Website\
+lila-player-viz/
 ├── ARCHITECTURE.md          # System design, coordinate mapping, and technical decisions
 ├── INSIGHTS.md              # Data-driven level design insights backed by stats
 ├── README.md                # This file (user guide and setup instructions)
-├── Implementation_plan.md   # Original development master plan
-├── player_data/             # Raw parquet files (grouped by day)
-└── lila-player-viz/         # Next.js web application
-    ├── public/              # Static assets (resized maps and generated JSON data)
-    │   ├── maps/            # AmbroseValley.png, GrandRift.png, Lockdown.png
-    │   └── data/            # matches_index.json, aggregates.json, matches/*.json
-    ├── scripts/             # Data pipelines
-    │   ├── process_data.py  # Python ETL pipeline (Parquet -> JSON)
-    │   └── resize_minimaps.py # Map resizing script
-    ├── src/
-    │   ├── app/             # Next.js pages and CSS configuration
-    │   ├── components/      # Dashboard components (MapCanvas, FilterPanel, TimelineSlider, etc.)
-    │   ├── hooks/           # useMatchData custom react hooks
-    │   └── lib/             # Zustand store and types
+├── package.json             # Node.js dependencies and scripts
+├── public/                  # Static assets and pre-processed JSON data
+│   ├── maps/                # AmbroseValley.png, GrandRift.png, Lockdown.png
+│   └── data/                # matches_index.json, aggregates.json, matches/*.json
+├── scripts/                 # Data pipelines
+│   ├── process_data.py      # Python ETL pipeline (Parquet -> JSON)
+│   ├── resize_minimaps.py   # Map resizing script
+│   └── debug_data.py        # Pipeline debugging/diagnostics utility
+├── src/
+│   ├── app/                 # Next.js pages and CSS configuration
+│   ├── components/          # Dashboard components (MapCanvas, FilterPanel, TimelineSlider, etc.)
+│   ├── hooks/           # useMatchData custom react hooks
+│   └── lib/                 # Zustand store and types
 ```
 
 ---
@@ -78,19 +77,15 @@ Make sure you have the following installed on your machine:
 
 ### 2. Python ETL Data Pipeline
 To regenerate the coordinate-mapped match JSON files from the raw Parquet files:
-1. Navigate to the frontend directory:
-   ```bash
-   cd lila-player-viz
-   ```
-2. Install the python dependencies:
+1. Install the python dependencies:
    ```bash
    pip install pandas pyarrow
    ```
-3. Run the processing pipeline:
+2. Run the processing pipeline:
    ```bash
    python scripts/process_data.py
    ```
-This reads the raw files from `player_data/`, performs coordinate mapping and bot detection, and outputs static JSONs to `public/data/`.
+This reads the raw files from `player_data/` (located in the parent directory), performs coordinate mapping and bot detection, and outputs static JSONs to `public/data/`.
 
 ### 3. Running the Visualizer Dashboard
 1. Install Node dependencies:

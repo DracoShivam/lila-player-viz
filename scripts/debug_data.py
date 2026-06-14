@@ -3,7 +3,8 @@ import pyarrow.parquet as pq
 import pandas as pd
 from collections import defaultdict
 
-base_dir = r"d:\LILA Website\player_data"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+base_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "player_data"))
 days = ['February_10', 'February_11', 'February_12', 'February_13', 'February_14']
 
 # Count unique match_ids and how many files share a match_id

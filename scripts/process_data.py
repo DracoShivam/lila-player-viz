@@ -27,8 +27,9 @@ def get_pixel_coords(x, z, map_id):
     return round(max(0, min(1024, pixel_x)), 2), round(max(0, min(1024, pixel_y)), 2)
 
 def main():
-    base_dir = r"d:\LILA Website\player_data"
-    out_dir = r"d:\LILA Website\lila-player-viz\public\data"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "player_data"))
+    out_dir = os.path.abspath(os.path.join(script_dir, "..", "public", "data"))
     matches_dir = os.path.join(out_dir, "matches")
     os.makedirs(matches_dir, exist_ok=True)
     

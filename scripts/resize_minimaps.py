@@ -2,8 +2,9 @@ import os
 from PIL import Image
 
 def resize_minimaps():
-    input_dir = r"d:\LILA Website\player_data\minimaps"
-    output_dir = r"d:\LILA Website\lila-player-viz\public\minimaps"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    input_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "player_data", "minimaps"))
+    output_dir = os.path.abspath(os.path.join(script_dir, "..", "public", "maps"))
     
     os.makedirs(output_dir, exist_ok=True)
     
