@@ -23,6 +23,11 @@ interface AppState {
   matchIndex: MatchMeta[];
   currentMatchData: MatchData | null;
   aggregateData: AggregateData | null;
+  isLoadingMatchData: boolean;
+  
+  // Upload Mode
+  uploadedMatchData: MatchData | null;
+  isUploadMode: boolean;
   
   // Computed
   filteredMatches: MatchMeta[];
@@ -45,6 +50,10 @@ interface AppState {
   setMatchIndex: (index: MatchMeta[]) => void;
   setCurrentMatchData: (data: MatchData | null) => void;
   setAggregateData: (data: AggregateData | null) => void;
+  setIsLoadingMatchData: (loading: boolean) => void;
+
+  setUploadedMatchData: (data: MatchData) => void;
+  clearUploadedData: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -66,13 +75,28 @@ export const useAppStore = create<AppState>((set, get) => ({
   matchIndex: [],
   currentMatchData: null,
   aggregateData: null,
+  isLoadingMatchData: false,
+  
+  uploadedMatchData: null,
+  isUploadMode: false,
   
   filteredMatches: [],
 
   // Actions
   setMap: (map) => set((state) => {
     const filtered = state.matchIndex.filter(m => m.map_id === map && state.selectedDates.includes(m.date));
-    return { selectedMap: map, filteredMatches: filtered };
+    return { 
+      selectedMap: map, 
+      filteredMatches: filtered,
+      selectedMatchId: null,
+      currentMatchData: null,
+      currentTime: 0,
+      maxTime: 0,
+      isPlaying: false,
+      isUploadMode: false,
+      uploadedMatchData: null,
+      isLoadingMatchData: false
+    };
   }),
   
   toggleDate: (date) => set((state) => {
@@ -80,10 +104,45 @@ export const useAppStore = create<AppState>((set, get) => ({
       ? state.selectedDates.filter(d => d !== date)
       : [...state.selectedDates, date];
     const filtered = state.matchIndex.filter(m => m.map_id === state.selectedMap && dates.includes(m.date));
-    return { selectedDates: dates, filteredMatches: filtered };
+    const matchStillValid = state.selectedMatchId 
+      ? filtered.some(m => m.match_id === state.selectedMatchId) 
+      : false;
+    return { 
+      selectedDates: dates, 
+      filteredMatches: filtered,
+      isUploadMode: false,
+      uploadedMatchData: null,
+      ...(matchStillValid ? {} : {
+        selectedMatchId: null,
+        currentMatchData: null,
+        currentTime: 0,
+        maxTime: 0,
+        isPlaying: false,
+        isLoadingMatchData: false
+      })
+    };
   }),
   
-  setMatch: (id) => set({ selectedMatchId: id }),
+  setMatch: (id) => set((state) => {
+    if (id === null) {
+      return { 
+        selectedMatchId: null, 
+        currentMatchData: null,
+        currentTime: 0,
+        maxTime: 0,
+        isPlaying: false,
+        isUploadMode: false,
+        uploadedMatchData: null,
+        isLoadingMatchData: false
+      };
+    }
+    const exists = state.filteredMatches.some(m => m.match_id === id);
+    return exists ? { 
+      selectedMatchId: id,
+      isUploadMode: false,
+      uploadedMatchData: null
+    } : {};
+  }),
   setShowHumans: (show) => set({ showHumans: show }),
   setShowBots: (show) => set({ showBots: show }),
   setShowPaths: (show) => set({ showPaths: show }),
@@ -117,4 +176,28 @@ export const useAppStore = create<AppState>((set, get) => ({
   }),
   
   setAggregateData: (data) => set({ aggregateData: data }),
+  setIsLoadingMatchData: (loading) => set({ isLoadingMatchData: loading }),
+  
+  setUploadedMatchData: (data) => set({
+    isUploadMode: true,
+    uploadedMatchData: data,
+    currentMatchData: data,
+    selectedMap: data.map_id,
+    selectedMatchId: null,
+    currentTime: 0,
+    maxTime: data.duration_s,
+    isPlaying: false,
+    isLoadingMatchData: false
+  }),
+  
+  clearUploadedData: () => set({
+    isUploadMode: false,
+    uploadedMatchData: null,
+    currentMatchData: null,
+    selectedMatchId: null,
+    currentTime: 0,
+    maxTime: 0,
+    isPlaying: false,
+    isLoadingMatchData: false
+  }),
 }));

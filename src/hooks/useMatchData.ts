@@ -3,7 +3,7 @@ import { useAppStore } from '@/lib/store';
 import { MatchMeta, AggregateData, MatchData } from '@/lib/types';
 
 export function useMatchData() {
-  const { setMatchIndex, setAggregateData, setCurrentMatchData, selectedMatchId } = useAppStore();
+  const { setMatchIndex, setAggregateData, setCurrentMatchData, setIsLoadingMatchData, selectedMatchId, isUploadMode } = useAppStore();
 
   useEffect(() => {
     // Fetch index
@@ -26,17 +26,27 @@ export function useMatchData() {
   }, [setMatchIndex, setAggregateData]);
 
   useEffect(() => {
+    if (isUploadMode) return;
+
     if (!selectedMatchId) {
       setCurrentMatchData(null);
+      setIsLoadingMatchData(false);
       return;
     }
 
+    setIsLoadingMatchData(true);
     fetch(`/data/matches/${selectedMatchId}.json`)
       .then(res => {
         if (!res.ok) throw new Error(`Failed to load match ${selectedMatchId}`);
         return res.json();
       })
-      .then(data => setCurrentMatchData(data as MatchData))
-      .catch(err => console.error(err));
-  }, [selectedMatchId, setCurrentMatchData]);
+      .then(data => {
+        setCurrentMatchData(data as MatchData);
+        setIsLoadingMatchData(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setIsLoadingMatchData(false);
+      });
+  }, [selectedMatchId, setCurrentMatchData, setIsLoadingMatchData, isUploadMode]);
 }

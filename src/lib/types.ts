@@ -10,6 +10,8 @@ export interface MatchMeta {
   human_count: number;
   bot_count: number;
   event_counts?: EventCounts;
+  event_summary?: Record<string, number>;
+  bot_kills_inferred?: number;
 }
 
 export interface EventData {
@@ -34,6 +36,8 @@ export interface MatchData {
   human_count: number;
   bot_count: number;
   players: PlayerData[];
+  event_summary?: Record<string, number>;
+  bot_kills_inferred?: number;
 }
 
 export interface AggregateData {

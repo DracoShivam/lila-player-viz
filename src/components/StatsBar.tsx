@@ -40,31 +40,34 @@ export default function StatsBar() {
   });
 
   return (
-    <div className="h-16 bg-[#111122] border-b border-[#2a2a4a] flex items-center px-6 justify-between text-[#e0e0ff] overflow-x-auto gap-4">
+    <div className="min-h-16 py-3 bg-[#111122] border-b border-[#2a2a4a] flex flex-wrap items-center px-6 justify-between text-[#e0e0ff] gap-4">
       {/* Match details */}
-      <div className="flex items-center gap-6 divide-x divide-[#2a2a4a]">
+      <div className="flex flex-wrap items-center gap-4 md:gap-6">
         <div className="flex flex-col">
           <span className="text-[10px] uppercase tracking-wider text-[#8888aa]">Match ID</span>
           <span className="text-xs font-mono text-[#00D4FF] truncate max-w-[120px]" title={currentMatchData.match_id}>
             {currentMatchData.match_id}
           </span>
         </div>
-        <div className="flex flex-col pl-6">
+        <div className="hidden sm:block w-px h-8 bg-[#2a2a4a]"></div>
+        <div className="flex flex-col">
           <span className="text-[10px] uppercase tracking-wider text-[#8888aa]">Map</span>
           <span className="text-sm font-semibold">{currentMatchData.map_id}</span>
         </div>
-        <div className="flex flex-col pl-6">
+        <div className="hidden sm:block w-px h-8 bg-[#2a2a4a]"></div>
+        <div className="flex flex-col">
           <span className="text-[10px] uppercase tracking-wider text-[#8888aa]">Date</span>
-          <span className="text-sm font-semibold">{currentMatchData.date.replace('_', ' ')}</span>
+          <span className="text-sm font-semibold">{currentMatchData.date.replace(/_/g, ' ')}</span>
         </div>
-        <div className="flex flex-col pl-6">
+        <div className="hidden sm:block w-px h-8 bg-[#2a2a4a]"></div>
+        <div className="flex flex-col">
           <span className="text-[10px] uppercase tracking-wider text-[#8888aa]">Duration</span>
           <span className="text-sm font-mono font-semibold">{formatDuration(currentMatchData.duration_s)}</span>
         </div>
       </div>
 
       {/* Stats items */}
-      <div className="flex items-center gap-6 bg-[#161630] px-4 py-1.5 rounded-lg border border-[#232344]">
+      <div className="flex flex-wrap items-center gap-4 md:gap-6 bg-[#161630] px-4 py-1.5 rounded-lg border border-[#232344]">
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-center">
             <span className="text-[9px] uppercase tracking-wider text-[#8888aa]">Humans</span>
@@ -80,6 +83,11 @@ export default function StatsBar() {
         <div className="flex flex-col items-center">
           <span className="text-[9px] uppercase tracking-wider text-[#8888aa]">Kills</span>
           <span className="text-sm font-bold text-[#FF0044]">{totalKills}</span>
+        </div>
+        <div className="w-px h-6 bg-[#2a2a4a]"></div>
+        <div className="flex flex-col items-center">
+          <span className="text-[9px] uppercase tracking-wider text-[#8888aa]">Deaths</span>
+          <span className="text-sm font-bold text-[#FF3366]">{totalDeaths}</span>
         </div>
         <div className="w-px h-6 bg-[#2a2a4a]"></div>
         <div className="flex flex-col items-center">

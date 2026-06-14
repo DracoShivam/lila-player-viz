@@ -16,6 +16,7 @@ export default function MapCanvas() {
     showBots,
     showPaths,
     currentTime,
+    isLoadingMatchData,
   } = useAppStore();
 
   // Load the minimap image
@@ -171,6 +172,31 @@ export default function MapCanvas() {
         className="w-full h-full object-contain"
       />
       <HeatmapOverlay />
+
+      {/* Empty State Overlay */}
+      {!currentMatchData && !isLoadingMatchData && (
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6 text-center">
+          <div className="max-w-md bg-[#161630]/90 border border-[#2a2a4a] p-8 rounded-xl shadow-2xl">
+            <div className="w-16 h-16 bg-[#00D4FF]/10 text-[#00D4FF] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold border border-[#00D4FF]/30 animate-pulse">
+              🗺️
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2 uppercase tracking-wide">Select Player Journey</h3>
+            <p className="text-sm text-[#8888aa] mb-4">
+              Choose a match from the sidebar matches list, or upload a custom player Parquet file to visualize player movements, combat, and loot collection.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Spinner Overlay */}
+      {isLoadingMatchData && (
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 bg-[#161630]/90 border border-[#2a2a4a] px-8 py-6 rounded-xl shadow-2xl">
+            <div className="w-10 h-10 border-4 border-[#00D4FF] border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm font-semibold text-[#00D4FF] tracking-wider uppercase animate-pulse">Loading Match Data...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

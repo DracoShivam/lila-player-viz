@@ -17,11 +17,16 @@ export default function TimelineSlider() {
     setCurrentTime, 
     togglePlay, 
     setPlaybackSpeed, 
-    tick 
+    tick,
+    selectedMatchId
   } = useAppStore();
 
   const requestRef = useRef<number | undefined>(undefined);
   const previousTimeRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    previousTimeRef.current = undefined;
+  }, [selectedMatchId, maxTime]);
 
   useEffect(() => {
     const animate = (time: number) => {

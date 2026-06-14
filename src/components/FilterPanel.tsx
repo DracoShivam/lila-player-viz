@@ -1,6 +1,8 @@
 'use client';
 import { useAppStore } from '@/lib/store';
 import { MAP_IDS, DATES } from '@/lib/constants';
+import EventLegend from './EventLegend';
+import ParquetUploader from './ParquetUploader';
 
 export default function FilterPanel() {
   const {
@@ -12,27 +14,40 @@ export default function FilterPanel() {
     showPaths, setShowPaths,
     showHeatmap, setShowHeatmap,
     heatmapType, setHeatmapType,
-    filteredMatches
+    filteredMatches,
+    matchIndex
   } = useAppStore();
+
+  const getMapMatchCount = (mapId: string) => {
+    return matchIndex.filter(m => m.map_id === mapId).length;
+  };
 
   return (
     <div className="w-72 bg-[#1a1a2e] border-r border-[#2a2a4a] flex flex-col h-full text-[#e0e0ff] overflow-hidden">
       <div className="p-4 border-b border-[#2a2a4a]">
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#8888aa] mb-2">Map</h2>
         <div className="flex flex-col gap-2">
-          {MAP_IDS.map(map => (
-            <button
-              key={map}
-              onClick={() => setMap(map)}
-              className={`text-left px-3 py-2 rounded text-sm transition-colors ${
-                selectedMap === map 
-                  ? 'bg-[#00D4FF] text-black font-semibold' 
-                  : 'bg-[#2a2a4a] hover:bg-[#3a3a5a] text-[#e0e0ff]'
-              }`}
-            >
-              {map}
-            </button>
-          ))}
+          {MAP_IDS.map(map => {
+            const count = getMapMatchCount(map);
+            return (
+              <button
+                key={map}
+                onClick={() => setMap(map)}
+                className={`text-left px-3 py-2 rounded text-sm transition-colors flex justify-between items-center ${
+                  selectedMap === map 
+                    ? 'bg-[#00D4FF] text-black font-semibold' 
+                    : 'bg-[#2a2a4a] hover:bg-[#3a3a5a] text-[#e0e0ff]'
+                }`}
+              >
+                <span>{map}</span>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                  selectedMap === map ? 'bg-black/20 text-black font-bold' : 'bg-black/40 text-[#8888aa]'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -87,6 +102,8 @@ export default function FilterPanel() {
         </div>
       </div>
 
+      <ParquetUploader />
+
       <div className="p-4 flex-1 flex flex-col overflow-hidden">
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#8888aa] mb-2 flex justify-between items-center">
           <span>Matches</span>
@@ -97,16 +114,38 @@ export default function FilterPanel() {
             <button
               key={match.match_id}
               onClick={() => setMatch(match.match_id)}
-              className={`w-full text-left p-2 rounded text-xs border transition-colors ${
+              className={`w-full text-left p-2.5 rounded text-xs border transition-colors ${
                 selectedMatchId === match.match_id 
                   ? 'bg-[#2a2a4a] border-[#00D4FF]' 
                   : 'bg-[#1a1a2e] border-[#2a2a4a] hover:border-[#3a3a5a] hover:bg-[#20203a]'
               }`}
             >
               <div className="font-mono truncate mb-1 text-[#e0e0ff]">{match.match_id.substring(0, 8)}...</div>
-              <div className="text-[#8888aa] flex justify-between">
-                <span>{match.human_count}H / {match.bot_count}B</span>
-                <span>{Math.floor(match.duration_s / 60)}m {match.duration_s % 60}s</span>
+              <div className="text-[#8888aa] flex justify-between items-center mt-1">
+                <span className="flex items-center gap-2">
+                  <span className="flex items-center">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00D4FF] mr-1"></span>
+                    {match.human_count}H
+                  </span>
+                  <span className="flex items-center">
+                    <span className="inline-block w-1.5 h-1.5 rounded-sm bg-[#FF6B35] mr-1"></span>
+                    {match.bot_count}B
+                  </span>
+                </span>
+                
+                <span className="flex items-center gap-2">
+                  {match.event_summary?.kill !== undefined && match.event_summary.kill > 0 && (
+                    <span className="flex items-center text-[#FF0044] font-semibold" title="Kills">
+                      <span className="mr-0.5 text-[10px]">◆</span>{match.event_summary.kill}
+                    </span>
+                  )}
+                  {match.event_summary?.loot !== undefined && match.event_summary.loot > 0 && (
+                    <span className="flex items-center text-[#FFD700] font-semibold" title="Loot Boxes">
+                      <span className="mr-0.5 text-[10px]">●</span>{match.event_summary.loot}
+                    </span>
+                  )}
+                  <span className="text-[10px]">{Math.floor(match.duration_s / 60)}m</span>
+                </span>
               </div>
             </button>
           ))}
@@ -115,6 +154,8 @@ export default function FilterPanel() {
           )}
         </div>
       </div>
+
+      <EventLegend />
     </div>
   );
 }
